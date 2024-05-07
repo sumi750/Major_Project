@@ -9,7 +9,11 @@ const Review = require("./models/review.js");
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 const wrapAsync = require("./uitls/wrapAsync.js");
 const expressError = require("./uitls/exError.js");
-const {listingSchema} = require("./schema.js");
+const {listingSchema, reviewSchema} = require("./schema.js");
+const passport = require("passport");
+const localStr = require("passport-local");
+const User = require("./models/user.js");
+
 
 main()
   .then(() => {
@@ -34,6 +38,10 @@ app.get("/", (req, res) => {
   res.send("Hi, I am root");
 });
 
+// Valitdate
+
+
+
 //Index Route
 app.get("/listings", wrapAsync(async (req, res) => {
   const allListings = await Listing.find({});
@@ -48,7 +56,7 @@ app.get("/listings/new", (req, res) => {
 //Show Route
 app.get("/listings/:id", wrapAsync(async (req, res) => {
   let { id } = req.params;
-  const listing = await Listing.findById(id);
+  const listing = await Listing.findById(id).populate("reviews");
   res.render("listings/show.ejs", { listing });
 }));
 
@@ -94,34 +102,57 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
 }));
 
 
-
-app.all("*", (req,res,next)=>{
-  next(new expressError(404, "Page not Fonud!"));
-})
-
-
-
 // Reviews: Submitting the form
 //Post Route
-app.post("/listings/:id/reviews", async(req,res,next)=>{
+app.post("/listings/:id", async(req,res,next)=>{
 
   try{
-
     let { id } = req.params;
-    console.log(id);
     let listing = await Listing.findById(id);
-    let newReview = new Review(req.body);
+    let newReview = new Review({
+      rating : req.body.rating,
+      comment : req.body.comment,
+    });
+    
     listing.reviews.push(newReview);
     await newReview.save();
     await listing.save();
-    console.log(listing);
-    res.send("new reqview saved");
+    console.log("Reviews is added ");
+    res.redirect(`/listings/${listing.id}`);
   }
   catch(err){
     next(err);
   }
 });
 
+
+//Delete Review
+app.delete("/listings/:id/:reviewId", wrapAsync(async(req,res)=>{
+    let {id, reviewId} = req.params;
+    await Listing.findByIdAndUpdate(id, {$pull: {reviews: reviewId}})
+    await Review.findByIdAndDelete(reviewId);
+    console.log("Review is deleted");
+    res.redirect(`/listings/${id}`);
+}))
+
+
+// Sign Up page
+app.get("/signup", (req,res)=>{
+    res.render("users/signup.ejs");
+})
+
+app.post("/signup", async(req,res)=>{
+    let {username, email, password} = req.body;
+    const newUser = new User({email, username, password});
+   const regUser =  await newUser.save();
+   console.log("user is regiested");
+   console.log(regUser);
+   res.redirect("/listings");
+})
+
+app.all("*", (req,res,next)=>{
+  next(new expressError(404, "Page not Fonud!"));
+})
 
 app.use((err,req,res,next)=>{
   console.log("Something is wrong"); 
