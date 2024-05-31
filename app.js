@@ -40,13 +40,22 @@ app.get("/", (req, res) => {
 
 // Valitdate
 
+app.get("/listings", async(req,res)=>{
+  try{
+    const list = await Listing.find({});
+    res.json(list);
+  }
+  catch(err){
+    res.send(500).send(err);
+  }
+})
 
 
 //Index Route
-app.get("/listings", wrapAsync(async (req, res) => {
-  const allListings = await Listing.find({});
-  res.render("listings/index.ejs", { allListings });
-}));
+// app.get("/listings", wrapAsync(async (req, res) => {
+//   const allListings = await Listing.find({});
+//   res.render("listings/index.ejs", { allListings });
+// }));
 
 //New Route
 app.get("/listings/new", (req, res) => {
@@ -162,5 +171,5 @@ app.use((err,req,res,next)=>{
 })
 
 app.listen(8080, () => {
-  console.log("server is listening to port 8080");
+  console.log("server is listening to port" , 8080);
 });
