@@ -39,23 +39,34 @@ app.get("/", (req, res) => {
 });
 
 // Valitdate
+const validateListing = (req,res,next) =>{
+  let {error} = listingSchema.validate(req.body);
 
-app.get("/listings", async(req,res)=>{
-  try{
-    const list = await Listing.find({});
-    res.json(list);
+  if(error){
+    let errMsg = error.details.map((el)=> el.message).join(",");
+    throw new expressError(400, errMsg);
   }
-  catch(err){
-    res.send(500).send(err);
+  else{
+    next();
   }
-})
+}
+
+// app.get("/listings", async(req,res)=>{
+//   try{
+//     const list = await Listing.find({});
+//     res.json(list);
+//   }
+//   catch(err){
+//     res.send(500).send(err);
+//   }
+// })
 
 
 //Index Route
-// app.get("/listings", wrapAsync(async (req, res) => {
-//   const allListings = await Listing.find({});
-//   res.render("listings/index.ejs", { allListings });
-// }));
+app.get("/listings", wrapAsync(async (req, res) => {
+  const allListings = await Listing.find({});
+  res.render("listings/index.ejs", { allListings });
+}));
 
 //New Route
 app.get("/listings/new", (req, res) => {
@@ -70,21 +81,26 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 }));
 
 //Create Route
-app.post("/listings", wrapAsync(async (req,res,next) => {
+app.post("/listings", validateListing, wrapAsync(async (req,res,next) => {
 
-    listingSchema.validate(req.body);
-     const newListing = new Listing({
-        title: req.body.title,
-        description: req.body.description,
-        image: req.body.image,
-        price:req.body.price,
-        country: req.body.country,
-        location: req.body.location 
-      });
+  if(!req.body.Listing){
+    throw new expressError(400, "Send valid data for listing")
+  }
+
+    const result = listingSchema.validate(req.body);
+    console.log(result);
+    const newListing = new Listing({
+      title: req.body.title,
+      description: req.body.description,
+      image: req.body.image,
+      price:req.body.price,
+      country: req.body.country,
+      location: req.body.location 
+    });
     const nlist = await newListing.save();
     console.log(nlist);
     res.redirect("/listings");
-  }
+}
 )
 );
 
@@ -96,7 +112,7 @@ app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
 }));
 
 //Update Route
-app.put("/listings/:id",wrapAsync(async (req, res) => {
+app.put("/listings/:id", validateListing, wrapAsync(async (req, res) => {
   let { id } = req.params;
   await Listing.findByIdAndUpdate(id, { ...req.body.listing });
   res.redirect(`/listings/${id}`);
@@ -165,7 +181,7 @@ app.all("*", (req,res,next)=>{
 
 app.use((err,req,res,next)=>{
   console.log("Something is wrong"); 
-  let {statusCode=501, message="PAge not found"} = err;
+  let {statusCode=501, message="Page not found"} = err;
   res.status(statusCode).render("error.ejs", {message});
   // res.status(statusCode).send(message);
 })
