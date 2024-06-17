@@ -28,8 +28,7 @@ const listingSchema = new Schema({
   ],
 });
 
-
-
+// Post Mongoose MW for deleting reviews when listing is going to delete
 
 listingSchema.post("findOneAndDelete", async(listing)=>{
   if(listing){

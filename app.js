@@ -51,6 +51,18 @@ const validateListing = (req,res,next) =>{
   }
 }
 
+const validateReview = (req,res,next) =>{
+  let {error} = reviewSchema.validate(req.body);
+
+  if(error){
+    let errMsg = error.details.map((el)=> el.message).join(",");
+    throw new expressError(400, errMsg);
+  }
+  else{
+    next();
+  }
+}
+
 // app.get("/listings", async(req,res)=>{
 //   try{
 //     const list = await Listing.find({});
@@ -81,14 +93,12 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 }));
 
 //Create Route
-app.post("/listings", validateListing, wrapAsync(async (req,res,next) => {
+app.post("/listings",wrapAsync(async (req,res,next) => {
 
-  if(!req.body.Listing){
-    throw new expressError(400, "Send valid data for listing")
-  }
+  
 
-    const result = listingSchema.validate(req.body);
-    console.log(result);
+    // const result = listingSchema.validate(req.body);
+    // console.log(result);
     const newListing = new Listing({
       title: req.body.title,
       description: req.body.description,
@@ -97,6 +107,10 @@ app.post("/listings", validateListing, wrapAsync(async (req,res,next) => {
       country: req.body.country,
       location: req.body.location 
     });
+    
+    // if(!req.body.Listing){
+    //   throw new expressError(400, "Send valid data for listing")
+    // }
     const nlist = await newListing.save();
     console.log(nlist);
     res.redirect("/listings");
@@ -129,7 +143,7 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
 
 // Reviews: Submitting the form
 //Post Route
-app.post("/listings/:id", async(req,res,next)=>{
+app.post("/listings/:id", wrapAsync(async(req,res,next)=>{
 
   try{
     let { id } = req.params;
@@ -148,7 +162,7 @@ app.post("/listings/:id", async(req,res,next)=>{
   catch(err){
     next(err);
   }
-});
+}));
 
 
 //Delete Review
