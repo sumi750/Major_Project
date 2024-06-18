@@ -153,6 +153,7 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
   let { id } = req.params;
   let deletedListing = await Listing.findByIdAndDelete(id);
   console.log(deletedListing);
+  req.flash("success", "Listing is deleted");
   res.redirect("/listings");
 }));
 
@@ -173,6 +174,7 @@ app.post("/listings/:id", wrapAsync(async(req,res,next)=>{
     await newReview.save();
     await listing.save();
     console.log("Reviews is added ");
+    req.flash("success", "New Review is Added!");
     res.redirect(`/listings/${listing.id}`);
   }
   catch(err){
@@ -187,6 +189,7 @@ app.delete("/listings/:id/:reviewId", wrapAsync(async(req,res)=>{
     await Listing.findByIdAndUpdate(id, {$pull: {reviews: reviewId}})
     await Review.findByIdAndDelete(reviewId);
     console.log("Review is deleted");
+    req.flash("success", "Review is Deleted!");
     res.redirect(`/listings/${id}`);
 }))
 
