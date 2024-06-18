@@ -13,7 +13,8 @@ const {listingSchema, reviewSchema} = require("./schema.js");
 const passport = require("passport");
 const localStr = require("passport-local");
 const User = require("./models/user.js");
-
+const session = require("express-session");
+const flash = require("connect-flash");
 
 main()
   .then(() => {
@@ -37,6 +38,25 @@ app.use(express.static(path.join(__dirname, "/public")));
 app.get("/", (req, res) => {
   res.send("Hi, I am root");
 });
+
+const sessionOption = {
+  secret: "mysecretstring",
+  resave: false,
+  saveUninitialized: true,
+  cookie : {
+    expires : Date.now() + 7*24*60*60*1000,
+    maxAge : 7*24*60*60*1000,
+    httpOnly : true
+  }
+}
+
+app.use(session(sessionOption));
+app.use(flash());
+
+app.use((req,res,next)=>{
+  res.locals.Smsg = req.flash("success");
+  next();
+})
 
 // Valitdate
 const validateListing = (req,res,next) =>{
@@ -72,9 +92,9 @@ const validateReview = (req,res,next) =>{
 //     res.send(500).send(err);
 //   }
 // })
-
-
 //Index Route
+
+
 app.get("/listings", wrapAsync(async (req, res) => {
   const allListings = await Listing.find({});
   res.render("listings/index.ejs", { allListings });
@@ -93,30 +113,26 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 }));
 
 //Create Route
-app.post("/listings",wrapAsync(async (req,res,next) => {
+app.post("/listings",wrapAsync(async (req,res,next) =>{
 
-  
-
-    // const result = listingSchema.validate(req.body);
-    // console.log(result);
-    const newListing = new Listing({
+  // const result = listingSchema.validate(req.body);
+  const newListing = new Listing({
       title: req.body.title,
       description: req.body.description,
       image: req.body.image,
       price:req.body.price,
       country: req.body.country,
       location: req.body.location 
-    });
+  });
     
     // if(!req.body.Listing){
     //   throw new expressError(400, "Send valid data for listing")
     // }
     const nlist = await newListing.save();
     console.log(nlist);
+    req.flash("success", "New Listing is Added!");
     res.redirect("/listings");
-}
-)
-);
+  }));
 
 //Edit Route
 app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
