@@ -11,7 +11,7 @@ const wrapAsync = require("./uitls/wrapAsync.js");
 const expressError = require("./uitls/exError.js");
 const {listingSchema, reviewSchema} = require("./schema.js");
 const passport = require("passport");
-const localStr = require("passport-local");
+const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 const session = require("express-session");
 const flash = require("connect-flash");
@@ -53,8 +53,17 @@ const sessionOption = {
 app.use(session(sessionOption));
 app.use(flash());
 
+// Passport
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req,res,next)=>{
   res.locals.Smsg = req.flash("success");
+  res.locals.Emsg = req.flash("error");
   next();
 })
 
@@ -124,10 +133,6 @@ app.post("/listings",wrapAsync(async (req,res,next) =>{
       country: req.body.country,
       location: req.body.location 
   });
-    
-    // if(!req.body.Listing){
-    //   throw new expressError(400, "Send valid data for listing")
-    // }
     const nlist = await newListing.save();
     console.log(nlist);
     req.flash("success", "New Listing is Added!");
@@ -194,19 +199,45 @@ app.delete("/listings/:id/:reviewId", wrapAsync(async(req,res)=>{
 }))
 
 
-// Sign Up page
+// SignUp Pafe
+//Get Method
 app.get("/signup", (req,res)=>{
     res.render("users/signup.ejs");
 })
 
-app.post("/signup", async(req,res)=>{
+//Post Method
+app.post("/signup", wrapAsync(async(req,res)=>{
+  try{
+
     let {username, email, password} = req.body;
     const newUser = new User({email, username, password});
-   const regUser =  await newUser.save();
-   console.log("user is regiested");
-   console.log(regUser);
-   res.redirect("/listings");
+    const regUser =  await User.register(newUser, password);
+    console.log(regUser);
+    req.flash("success", "User is Regostred Successfuly!");
+    res.redirect("/listings");
+  }
+  catch(err){
+    req.flash("error", err.message);
+    res.redirect("/signup");
+  }
+}));
+
+//Login Page
+// Get method
+app.get("/login", (req,res)=>{
+  res.render("users/login.ejs");
 })
+
+//Post method
+app.post("/login", 
+  passport.authenticate("local", {
+  failureRedirect : "/login", 
+  failureFlash: true}), 
+  async (req,res)=>{
+    req.flash("success", "U are Logged In!");
+    res.redirect("/listings");
+});
+
 
 app.all("*", (req,res,next)=>{
   next(new expressError(404, "Page not Fonud!"));

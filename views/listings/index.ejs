@@ -1,11 +1,6 @@
-<% layout("/layouts/boilerplate") -%> <%= Smsg %>
-<br>
+<% layout("/layouts/boilerplate") -%> <br>
   <body>
-    <h3 style="text-align: center;">Wander Lust</h3>
-    <!-- <form method="GET" action="/listings/new">
-      <button>Create New Listing</button>
-    </form> -->
-
+    <h3>Wander Lust</h3>
 <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
 
     <% for(let listing of allListings) { %>
@@ -17,7 +12,6 @@
         <p class="card-text">
         <b><%= listing.title %> </b><br>
         &#8377; <%= listing.price%> / night 
-        <!-- <button class=" btn btn-dark ">BOOK NOW</button> -->
         </p>
         </div>
         </div>
