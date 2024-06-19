@@ -1,4 +1,4 @@
-const { ref } = require("joi");
+const { ref, types } = require("joi");
 const mongoose = require("mongoose");
 const Review = require("./review.js")
 const Schema = mongoose.Schema;
@@ -26,6 +26,10 @@ const listingSchema = new Schema({
       ref: "Review"
     },
   ],
+  owner : {
+    type : Schema.Types.ObjectId,
+    ref : "User",
+  }
 });
 
 // Post Mongoose MW for deleting reviews when listing is going to delete

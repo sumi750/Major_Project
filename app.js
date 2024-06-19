@@ -119,7 +119,7 @@ app.get("/listings/new", isLoggedIn,(req, res) => {
 //Show Route
 app.get("/listings/:id", wrapAsync(async (req, res) => {
   let { id } = req.params;
-  const listing = await Listing.findById(id).populate("reviews");
+  const listing = await Listing.findById(id).populate("reviews").populate("owner");
   res.render("listings/show.ejs", { listing });
 }));
 
@@ -135,6 +135,7 @@ app.post("/listings",wrapAsync(async (req,res,next) =>{
       country: req.body.country,
       location: req.body.location 
   });
+    newListing.owner = req.user._id;
     const nlist = await newListing.save();
     console.log(nlist);
     req.flash("success", "New Listing is Added!");
