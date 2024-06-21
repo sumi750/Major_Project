@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -16,6 +17,9 @@ const User = require("./models/user.js");
 const session = require("express-session");
 const flash = require("connect-flash");
 const {isLoggedIn, saveRedirectUrl, isOwner, isAuthor} = require("./middle.js");
+const multer = require("multer");
+const {storage} = require("./cloudConfig.js");
+const upload = multer({ storage });
 
 main()
   .then(() => {
@@ -130,9 +134,11 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 }));
 
 //Create Route
-app.post("/listings",wrapAsync(async (req,res,next) =>{
+app.post("/listings", upload.single("image"), wrapAsync(async (req,res,next) =>{
 
   // const result = listingSchema.validate(req.body);
+  let url = req.file.path;
+  let filename = req.file.filename;
   const newListing = new Listing({
       title: req.body.title,
       description: req.body.description,
@@ -142,8 +148,8 @@ app.post("/listings",wrapAsync(async (req,res,next) =>{
       location: req.body.location 
   });
     newListing.owner = req.user._id;
+    newListing.image = {url, filename};
     const nlist = await newListing.save();
-    console.log(nlist);
     req.flash("success", "New Listing is Added!");
     res.redirect("/listings");
   }));
