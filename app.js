@@ -40,10 +40,6 @@ app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
 
-app.get("/", (req, res) => {
-  res.send("Hi, I am root");
-});
-
 const sessionOption = {
   secret: "mysecretstring",
   resave: false,
@@ -167,10 +163,18 @@ app.get("/listings/:id/edit", isLoggedIn,
 app.put("/listings/:id",
   isLoggedIn,
   isOwner,
-  validateListing,
+  upload.single("listing[image]"),
+  // validateListing,
   wrapAsync(async (req, res) => {
+
   let { id } = req.params;
-  await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+  let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+  if(typeof req.file !== "undefined"){
+    let url = req.file.path;
+    let filename = req.file.filename;
+    listing.image = {url, filename};
+    await listing.save();
+  }
   req.flash("success", "listing Updated");
   res.redirect(`/listings/${id}`);
 }));

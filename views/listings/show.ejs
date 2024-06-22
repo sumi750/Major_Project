@@ -28,8 +28,8 @@
         </form>
       </div>
       <%}%>
-  <hr>
-  <% if(currUser) { %>
+      <% if(currUser) { %>
+      <hr>
   <div class="col-8 offset-3 mb-3">
     <h5>Leave a Review</h5>
     <form action="/listings/<%=listing._id%>" method="post" novalidate class="needs-validation">
@@ -50,7 +50,7 @@
     </div>
       <div class="mb-3 mt-3">
         <label for="comment" class="form-label">Comment</label>
-        <textarea name="comment"  cols="30" rows="10" class="form-control" placeholder="Comment your thoughts" required></textarea>
+        <textarea name="comment"  cols="30" rows="2" class="form-control" placeholder="Comment your thoughts" required></textarea>
         <div class="invalid-feedback">Please submit some comments </div>
       </div>
       <button class="btn btn-outline-dark" type="submit">Submit</button>
@@ -58,9 +58,10 @@
 
     <hr>
     <%}%>
-    <p><b>All Reviews</b></p>
-    <div class="row">
 
+    <% if(listing.reviews.length > 0)  { %>
+    <div class="row">
+      <p><b>All Reviews</b></p>
       <% for (review of listing.reviews) { %>
         <div class="card col-5 ms-3 mb-3">
           <div class="card-body">
@@ -74,6 +75,6 @@
         </div>
         <% } %>
       </div>
-
-  </div>
+    <% } %>
+    </div>
 </div>
