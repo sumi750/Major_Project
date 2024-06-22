@@ -54,7 +54,7 @@ const sessionOption = {
 app.use(session(sessionOption));
 app.use(flash());
 
-// Passport
+// Passport Authentication
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
@@ -94,18 +94,7 @@ const validateReview = (req,res,next) =>{
   }
 }
 
-// app.get("/listings", async(req,res)=>{
-//   try{
-//     const list = await Listing.find({});
-//     res.json(list);
-//   }
-//   catch(err){
-//     res.send(500).send(err);
-//   }
-// })
-//Index Route
-
-
+// Index Route
 app.get("/listings", wrapAsync(async (req, res) => {
   const allListings = await Listing.find({});
   res.render("listings/index.ejs", { allListings });
@@ -131,8 +120,6 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 
 //Create Route
 app.post("/listings", upload.single("image"), wrapAsync(async (req,res,next) =>{
-
-  // const result = listingSchema.validate(req.body);
   let url = req.file.path;
   let filename = req.file.filename;
   const newListing = new Listing({
@@ -164,7 +151,6 @@ app.put("/listings/:id",
   isLoggedIn,
   isOwner,
   upload.single("listing[image]"),
-  // validateListing,
   wrapAsync(async (req, res) => {
 
   let { id } = req.params;
@@ -192,7 +178,7 @@ app.delete("/listings/:id",isLoggedIn,
 
 
 // Reviews: Submitting the form
-//Post Route
+//Post Review
 app.post("/listings/:id",
   isLoggedIn,
    wrapAsync(async(req,res,next)=>{
@@ -217,7 +203,6 @@ app.post("/listings/:id",
   }
 }));
 
-
 //Delete Review
 app.delete("/listings/:id/:reviewId",
   isLoggedIn,
@@ -232,13 +217,13 @@ app.delete("/listings/:id/:reviewId",
 }))
 
 
-// SignUp Pafe
-//Get Method
+// SignUp Page
+
 app.get("/signup", (req,res)=>{
     res.render("users/signup.ejs");
 })
 
-//Post Method
+//Post 
 app.post("/signup", wrapAsync(async(req,res,next)=>{
   try{
 
@@ -289,7 +274,7 @@ app.get("/logout", (req,res,next)=>{
     })
 })
 
-
+//Error Handling
 app.all("*", (req,res,next)=>{
   next(new expressError(404, "Page not Fonud!"));
 })
@@ -298,7 +283,6 @@ app.use((err,req,res,next)=>{
   console.log("Something is wrong"); 
   let {statusCode=501, message="Page not found"} = err;
   res.status(statusCode).render("error.ejs", {message});
-  // res.status(statusCode).send(message);
 })
 
 app.listen(8080, () => {
